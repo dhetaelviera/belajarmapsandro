@@ -31,6 +31,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -189,7 +190,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 LatLng bb = new LatLng(lat, lng);
                 System.out.println(bb + "ini BBBBBBBBBBBB");
 
-                mMap.addMarker(new MarkerOptions().position(bb).title("u're here"));
+                mMap.addMarker(new MarkerOptions()
+                        .position(bb)
+                        .title("u're here")
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(bb));
 
             }
