@@ -1,28 +1,24 @@
 package com.example.testinggps.Model;
 
-
-import java.util.ArrayList;
-
-public class ModelData extends ArrayList<String> {
-    String username, nama;
+public class ModelData  {
+    String norek, nama;
     Double lat, lng;
 
     public ModelData(){}
 
-    public ModelData(String username, String nama, Double lat, Double lng){
+    public ModelData(String norek, String nama, Double lat, Double lng){
         this.lat=lat;
-        this.username=username;
+        this.norek=norek;
         this.nama=nama;
         this.lng=lng;
     }
 
-    public String getUsername() {
-        return username;
+    public String getNorek() {
+        return norek;
     }
 
-    public String setUsername(String username) {
-        this.username = username;
-        return username;
+    public void setNorek(String norek) {
+        this.norek = norek;
     }
 
     public String getNama() {
@@ -49,8 +45,4 @@ public class ModelData extends ArrayList<String> {
         this.lng = lng;
     }
 
-    public Object getAsJsonObject( String nama) {
-        this.nama=nama;
-    return nama;
-    }
 }

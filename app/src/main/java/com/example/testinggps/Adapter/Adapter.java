@@ -17,11 +17,11 @@ import java.util.List;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.HolderData> {
     private List<ModelData> mItems;
-    private Context context;
+    private Context mContext;
 
     public Adapter(Context mContext, List<ModelData> items){
         this.mItems=items;
-        this.context=context;
+        this.mContext=mContext;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.HolderData> {
     @Override
     public void onBindViewHolder(HolderData holder, int i) {
         ModelData md=mItems.get(i);
-        holder.tvusername.setText(md.getUsername());
+        holder.tvusername.setText(md.getNorek());
 
         holder.md=md;
     }

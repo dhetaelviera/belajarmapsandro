@@ -5,12 +5,13 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.SoundEffectConstants;
+import android.view.View;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -20,9 +21,11 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.testinggps.Adapter.Adapter;
 import com.example.testinggps.Model.ModelData;
+import com.example.testinggps.Util.AppControler;
 import com.example.testinggps.Util.ServerAPI;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -33,6 +36,7 @@ import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -50,11 +54,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location mLastLocation;
     private SupportMapFragment support;
     private Adapter mAdapter;
-    double lat, lng;
+    double lattt,lnggg, latq, lngq;
+    TextView norek,nama;
     int a;
     List<ModelData> mItems;
     ProgressDialog progressDialog;
     private Context mContext;
+    String dataNama,dataNorek;
+    String item[][];
+    int panjangArray, helo;
 
 
     @Override
@@ -66,60 +74,84 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         progressDialog = new ProgressDialog(MapsActivity.this);
         mItems = new ArrayList<>();
-        mAdapter = new Adapter(MapsActivity.this, mItems);
 
         mGoogleApiClient = new GoogleApiClient.Builder(getApplicationContext())
-                .addOnConnectionFailedListener(this)
                 .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
 
-        onMapReady(mMap);
+        item=new String[4][panjangArray];
+
+
         support.getMapAsync(this);
+
+    }
+
+    public double jarak(double lat1, double lat2, double lng1, double lng2){
+        lat1=lattt;
+        lng1=lnggg;
+        lat2=latq;
+        lng2=lngq;
+
+        double selisihlat=(lat1-lat2)*30.416;
+        double selisihlng=(lng1-lng2)*30.416;
+
+        double jaraknya=Math.sqrt((Math.pow(selisihlat,2))+(Math.pow(selisihlng,2)));
+        System.out.println("hitung di methodnya = "+jaraknya);
+
+
+        return jaraknya;
+
 
     }
 
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        System.out.println(lat + "=== "+lng);
-
-        System.out.println("LAAAAAAAAAAAAAAAA");
+        RequestQueue queue = Volley.newRequestQueue(this);
+        progressDialog.setMessage("Ngambil data");
         progressDialog.setCancelable(false);
         progressDialog.show();
-
-        RequestQueue queue = Volley.newRequestQueue(this);
-
-        JsonArrayRequest reqData = new JsonArrayRequest(Request.Method.POST, ServerAPI.URL_DATA, null,
+        JsonArrayRequest reqData=new JsonArrayRequest(Request.Method.POST, ServerAPI.URL_DATA,null,
                 new Response.Listener<JSONArray>() {
                     @Override
-                    public void onResponse(JSONArray response) {
-
-                        System.out.println("ini responsenya: ");
+                    public void onResponse(final JSONArray response) {
+                        System.out.println("DARI MAPS YA RESPONSENYA: ");
                         System.out.println(response);
                         progressDialog.cancel();
                         Log.d("volley ", "response = " + response.toString());
-                        for (int i = 0; i < response.length(); i++) {
+                        System.out.println("Ini panjang response= "+response.length());
+                        panjangArray=response.length();
+                        for (int i=0;i<response.length();i++){
+                            item= new String [4][panjangArray];
                             try {
-                                JSONObject data = response.getJSONObject(i);
-                                ModelData md = new ModelData();
-                                md.setLng(data.getDouble("lng"));
-                                md.setLat(data.getDouble("lat"));
-                                md.setUsername(data.getString("username"));
-                                String user = data.getString("username");
-                                double lattt = data.getDouble("lat");
-                                double lnggg = data.getDouble("lng");
-                                System.out.println(user + " adalah user ke- " + i);
-                                System.out.println(lattt + " --- " + lnggg);
-                                mItems.add(md);
-                                a = mItems.size();
+                                JSONObject data= response.getJSONObject(i);
+
+                                item[0][i]=data.getString("nama");
+                                item[1][i]=Double.toString(data.getDouble("lat"));
+                                item[2][i]=Double.toString(data.getDouble("lng"));
+                                item[3][i]=data.getString("norek");
+                                System.out.println("Norek yg masuk ke array= "+ item[3][i]);
 
                                 LatLng kk = new LatLng(lattt, lnggg);
-                                System.out.println(kk);
+                                double ini=jarak(latq,lngq,lattt,lnggg);
+                                System.out.println("jarakku dengan kamu adalah "+ini);
 
-                                mMap.addMarker(new MarkerOptions().position(kk).title(user));
+                                mMap.addMarker(new MarkerOptions().position(kk).title(item[0][i]));
                                 mMap.moveCamera(CameraUpdateFactory.newLatLng(kk));
 
+                                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                                    @Override
+                                    public boolean onMarkerClick(Marker marker) {
+                                        norek=(TextView) findViewById(R.id.tvnorek);
+                                        nama=(TextView) findViewById(R.id.tvnama);
+                                        String namama=marker.getTitle();
+                                        nama.setText(namama);
+                                        System.out.println(response.length());
+
+                                        return false;
+                                    }
+                                });
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -130,13 +162,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         progressDialog.cancel();
-                        Log.d("volley", "error=" + error.getMessage());
+                        Log.d("volley","error="+ error.getMessage());
                     }
                 }
         );
 
-        System.out.println(a);
+        System.out.println(reqData);
         queue.add(reqData);
+        System.out.println("INI PANJANG ARRAY "+panjangArray);
+        System.out.println(latq+" == "+lngq);
 
     }
 
@@ -176,20 +210,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+
     public void onConnected(Bundle bundle) {
         System.out.println("MASUK GAAAAAA");
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            System.out.println("NYOOOOOOOOOOO");
+            System.out.println(mLastLocation);
+
             if (mLastLocation != null) {
-                lat = mLastLocation.getLatitude();
-                lng = mLastLocation.getLongitude();
+                double lat = mLastLocation.getLatitude();
+                double lng = mLastLocation.getLongitude();
                 System.out.println("Latitude= " + lat + ", longitude= " + lng);
                 support.getMapAsync(this);
 
                 LatLng bb = new LatLng(lat, lng);
                 System.out.println(bb + "ini BBBBBBBBBBBB");
-
+                latq=lat;
+                lngq=lng;
                 mMap.addMarker(new MarkerOptions()
                         .position(bb)
                         .title("u're here")
